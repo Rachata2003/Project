@@ -1,0 +1,94 @@
+/* General reset and body styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+/* Styling for the main container */
+.e1_2 {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 500px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling for the span elements */
+.e4_7 {
+    font-size: 20px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.e4_19 {
+    font-size: 16px;
+    margin-bottom: 20px;
+    display: block;
+}
+
+/* Styling for the input box */
+.e4_28 {
+    margin-bottom: 20px;
+}
+
+.ei4_28_54616_25488 {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* Styling for the button */
+.next_button {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.next_button:hover {
+    background-color: #0056b3;
+}
+
+/* Styling for the span elements indicating action */
+.e4_34 {
+    font-size: 14px;
+    color: #888;
+    display: block;
+    margin-bottom: 20px;
+}
+
+/* Styling for the form */
+form {
+    margin-top: 20px;
+}
+
+label {
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+input[type="text"] {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: calc(100% - 22px);
+    box-sizing: border-box;
+}
+
+/* Styling for the hr element */
+hr {
+    margin: 20px 0;
+    border: 0;
+    border-top: 1px solid #ddd;
+}
