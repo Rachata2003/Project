@@ -1,1 +1,1 @@
-print("Not start yet.")
+print("Starting")
