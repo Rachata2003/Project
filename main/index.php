@@ -10,6 +10,6 @@
 <body>
     <h1>All of your data will be kept as secret and only used for this project</h1>
     <h4>Please click item below when you're ready</h4>
-    <a href="../data_collection/insertformpg1.php">insert your data</a>
+    <a href="../hand_scanning/insertlefthand.php">insert your data</a>
 </body>
 </html>
