@@ -25,23 +25,27 @@ $surname = isset($_SESSION['surname']) ? $_SESSION['surname'] : "Not provided";
 $email = isset($_SESSION['personal_email']) ? $_SESSION['personal_email'] : "Not provided";
 $address = isset($_SESSION['address']) ? $_SESSION['address'] : "Not provided";
 
+// Execute the query
 $stmt->execute();
+
+// Fetch the last inserted record's ID
+$last_id = $conn->insert_id;
 
 // Close connection
 $stmt->close();
 $conn->close();
 
-// Display collected information
+// Display collected information with timestamp
 echo "<h1>Collected Information</h1>";
 echo "<p>First Name: " . htmlspecialchars($first_name) . "</p>";
 echo "<p>Surname: " . htmlspecialchars($surname) . "</p>";
 echo "<p>Email: " . htmlspecialchars($email) . "</p>";
 echo "<p>Address: " . htmlspecialchars($address) . "</p>";
+echo "<p>Submission Time: " . date("Y-m-d H:i:s") . "</p>"; // Display the timestamp
 echo "<p>Thank you for submitting your information.</p>";
 
 // Increment the counter for the next loop
 $_SESSION['counter']++;
-
 
 // Redirect to insertformpg1.php after 5 seconds
 header("Refresh: 5; URL=insertformpg1.php");

@@ -25,6 +25,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $suffix; ?> Time Name</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <script>
+        let lastKeyTime = null;
+        let typingData = [];
+
+        function trackKeyTime(event) {
+            const currentTime = new Date().getTime();
+            if (lastKeyTime !== null) {
+                const timeDiff = (currentTime - lastKeyTime) / 1000; // Convert milliseconds to seconds
+                typingData.push({
+                    key: event.key,
+                    time: timeDiff,
+                    field: event.target.name // Track the field being typed into
+                });
+            }
+            lastKeyTime = currentTime;
+        }
+
+        function submitTypingData(form) {
+            // Send typing data to the backend
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "save_typing.php", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    console.log("Typing data saved successfully!");
+                } else {
+                    console.error("Error saving typing data.");
+                }
+            };
+            xhr.send(JSON.stringify(typingData));
+
+            // Submit the form after sending the data
+            form.submit();
+        }
+    </script>
 </head>
 <body>
     <div class="e1_2">
