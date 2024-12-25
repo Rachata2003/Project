@@ -26,39 +26,53 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title><?php echo $suffix; ?> Time Name</title>
     <link rel="stylesheet" href="../css/styles.css">
     <script>
-        let lastKeyTime = null;
+    document.addEventListener("DOMContentLoaded", function () {
         let typingData = [];
+        let lastKeyUpTime = null;
 
-        function trackKeyTime(event) {
-            const currentTime = new Date().getTime();
-            if (lastKeyTime !== null) {
-                const timeDiff = (currentTime - lastKeyTime) / 1000; // Convert milliseconds to seconds
+        // Collect typing data from input fields
+        document.querySelectorAll("input").forEach(inputField => {
+            inputField.addEventListener("keydown", function (event) {
+                const startTime = new Date().getTime();
+                event.target.dataset.startTime = startTime;
+            });
+
+            inputField.addEventListener("keyup", function (event) {
+                const endTime = new Date().getTime();
+                const startTime = parseInt(event.target.dataset.startTime || endTime);
+                const keyPressDuration = endTime - startTime;
+
+                const timeSinceLastKeyUp = lastKeyUpTime ? endTime - lastKeyUpTime : null;
+                lastKeyUpTime = endTime;
+
                 typingData.push({
                     key: event.key,
-                    time: timeDiff,
-                    field: event.target.name // Track the field being typed into
+                    time: keyPressDuration,
+                    time_between_keys: timeSinceLastKeyUp,
+                    field: event.target.name
                 });
-            }
-            lastKeyTime = currentTime;
-        }
+            });
+        });
 
-        function submitTypingData(form) {
-            // Send typing data to the backend
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "save_typing.php", true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    console.log("Typing data saved successfully!");
-                } else {
-                    console.error("Error saving typing data.");
-                }
-            };
-            xhr.send(JSON.stringify(typingData));
+        // Handle form submission
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault();
 
-            // Submit the form after sending the data
-            form.submit();
-        }
+            fetch("algor_time_stamp.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ typing_data: typingData })
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log(data);
+                this.submit(); // Proceed with form submission
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    });
     </script>
 </head>
 <body>

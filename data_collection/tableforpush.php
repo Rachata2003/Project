@@ -5,7 +5,7 @@ session_start();
 $servername = "localhost";
 $username = "root";
 $password = ""; // Default XAMPP password is empty
-$dbname = "userdata"; // Replace with your actual database name
+$dbname = "userdata"; // Database name with "users" and "typing_data" tables
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -15,60 +15,57 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Prepare and bind
-$stmt = $conn->prepare("INSERT INTO info (user_name, user_surname, user_email, user_address) VALUES (?, ?, ?, ?)");
-$stmt->bind_param("ssss", $first_name, $surname, $email, $address);
+// Insert user data into the "users" table
+$stmt = $conn->prepare("INSERT INTO users (first_name, surname) VALUES (?, ?)");
+$stmt->bind_param("ss", $first_name, $surname);
 
-// Set parameters and execute
+// Retrieve session data
 $first_name = isset($_SESSION['first_name']) ? $_SESSION['first_name'] : "Not provided";
 $surname = isset($_SESSION['surname']) ? $_SESSION['surname'] : "Not provided";
-$email = isset($_SESSION['personal_email']) ? $_SESSION['personal_email'] : "Not provided";
-$address = isset($_SESSION['address']) ? $_SESSION['address'] : "Not provided";
 
-// Execute the query
+// Execute the query and get the inserted user ID
 $stmt->execute();
-
-// Fetch the last inserted record's ID
-$last_id = $conn->insert_id;
-
-// Close connection
+$user_id = $stmt->insert_id;
 $stmt->close();
+
+// Insert typing data into the "typing_data" table if available
+if (isset($_SESSION['typing_data']) && is_array($_SESSION['typing_data'])) {
+    $typing_stmt = $conn->prepare("INSERT INTO typing_data (user_id, key_pressed, press_duration, field_name, time_between_keys) VALUES (?, ?, ?, ?, ?)");
+
+    foreach ($_SESSION['typing_data'] as $typing_entry) {
+        $key_pressed = $typing_entry['key'];
+        $press_duration = $typing_entry['time'];
+        $field_name = $typing_entry['field'];
+        $time_between_keys = isset($typing_entry['time_between_keys']) ? $typing_entry['time_between_keys'] : null;
+
+        $typing_stmt->bind_param("isdss", $user_id, $key_pressed, $press_duration, $field_name, $time_between_keys);
+        $typing_stmt->execute();
+    }
+    $typing_stmt->close();
+}
+
+// Close database connection
 $conn->close();
 
-// Display collected information with timestamp
+// Clear session typing data for next iteration
+unset($_SESSION['typing_data']);
+
+// Display user information
 echo "<h1>Collected Information</h1>";
 echo "<p>First Name: " . htmlspecialchars($first_name) . "</p>";
 echo "<p>Surname: " . htmlspecialchars($surname) . "</p>";
-echo "<p>Email: " . htmlspecialchars($email) . "</p>";
-echo "<p>Address: " . htmlspecialchars($address) . "</p>";
-echo "<p>Submission Time: " . date("Y-m-d H:i:s") . "</p>"; // Display the timestamp
 echo "<p>Thank you for submitting your information.</p>";
 
 // Increment the counter for the next loop
 $_SESSION['counter']++;
 
 // Redirect to insertformpg1.php after 5 seconds
-header("Refresh: 5; URL=insertformpg1.php");
-
-// Check if the counter has reached 10
-if ($_SESSION['counter'] >= 11) {
-    // Clear session data for new entries
+if ($_SESSION['counter'] <= 10) {
+    header("Refresh: 5; URL=insertformpg1.php");
+} else {
+    // Clear session data after 10 iterations and redirect to final page
     session_unset();
     session_destroy();
-
-    // Redirect to finalpage.php
     header("Refresh: 5; URL=finalpage.php");
 }
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Information Submitted</title>
-</head>
-<body>
-    <p>You will be redirected to the first form in a few seconds...</p>
-</body>
-</html>
