@@ -16,12 +16,14 @@ if ($conn->connect_error) {
 }
 
 // Insert user data into the "users" table
-$stmt = $conn->prepare("INSERT INTO users (first_name, surname) VALUES (?, ?)");
-$stmt->bind_param("ss", $first_name, $surname);
+$stmt = $conn->prepare("INSERT INTO users (first_name, surname, email, address0) VALUES (?, ?, ?, ?)");
+$stmt->bind_param("ss", $first_name, $surname, $email, $address0);
 
 // Retrieve session data
 $first_name = isset($_SESSION['first_name']) ? $_SESSION['first_name'] : "Not provided";
 $surname = isset($_SESSION['surname']) ? $_SESSION['surname'] : "Not provided";
+$email = isset($_SESSION['email']) ? $_SESSION['email'] : "Not provided";
+$address0 = isset($_SESSION['address0']) ? $_SESSION['address0'] : "Not provided";
 
 // Execute the query and get the inserted user ID
 $stmt->execute();
@@ -54,6 +56,8 @@ unset($_SESSION['typing_data']);
 echo "<h1>Collected Information</h1>";
 echo "<p>First Name: " . htmlspecialchars($first_name) . "</p>";
 echo "<p>Surname: " . htmlspecialchars($surname) . "</p>";
+echo "<p>Email: " . htmlspecialchars($email) . "</p>";
+echo "<p>address: " . htmlspecialchars($address0) . "</p>";
 echo "<p>Thank you for submitting your information.</p>";
 
 // Increment the counter for the next loop
