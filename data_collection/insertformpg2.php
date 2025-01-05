@@ -6,6 +6,7 @@ $counter = $_SESSION['counter'];
 $suffix = ($counter == 1) ? "1st" : (($counter == 2) ? "2nd" : (($counter == 3) ? "3rd" : "{$counter}th"));
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Save email to session
     $_SESSION['personal_email'] = $_POST['personal_email'];
     header('Location: insertformpg3.php');
     exit();
@@ -23,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         let typingData = [];
         let lastKeyUpTime = null;
 
-        // Collect typing data from input fields
+        // Track typing data
         document.querySelectorAll("input").forEach(inputField => {
             inputField.addEventListener("keydown", function (event) {
                 const startTime = new Date().getTime();
@@ -35,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 const startTime = parseInt(event.target.dataset.startTime || endTime);
                 const keyPressDuration = endTime - startTime;
 
-                const timeSinceLastKeyUp = lastKeyUpTime ? endTime - lastKeyUpTime : null;
+                const timeSinceLastKeyUp = lastKeyUpTime !== null ? endTime - lastKeyUpTime : null;
                 lastKeyUpTime = endTime;
 
                 typingData.push({

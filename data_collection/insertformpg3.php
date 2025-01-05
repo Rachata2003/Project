@@ -1,84 +1,56 @@
 <?php
 session_start();
 
-// Use the existing counter
-$counter = $_SESSION['counter'];
-$suffix = ($counter == 1) ? "1st" : (($counter == 2) ? "2nd" : (($counter == 3) ? "3rd" : "{$counter}th"));
+// Establish database connection
+$conn = new mysqli('localhost', 'root', '', 'userdata');
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $_SESSION['address'] = $_POST['address'];
-    header('Location: tableforpush.php');
-    exit();
+// Check for connection errors
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
+
+// Check if all session data is set before inserting into the database
+if (
+    isset($_SESSION['first_name']) &&
+    isset($_SESSION['surname']) &&
+    isset($_SESSION['personal_email']) &&
+    isset($_SESSION['address'])
+) {
+    // Use prepared statements to prevent SQL injection
+    $name = $_SESSION['first_name'];
+    $surname = $_SESSION['surname'];
+    $email = $_SESSION['personal_email'];
+    $address = $_SESSION['address'];
+
+    // Check if the user data already exists to avoid duplicate entries
+    $checkQuery = "SELECT id FROM users WHERE first_name = ? AND surname = ? AND email = ? AND address = ?";
+    $stmt = $conn->prepare($checkQuery);
+    $stmt->bind_param('ssss', $name, $surname, $email, $address);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        // Insert the user data into the database
+        $insertQuery = "INSERT INTO users (first_name, surname, email, address) VALUES (?, ?, ?, ?)";
+        $insertStmt = $conn->prepare($insertQuery);
+        $insertStmt->bind_param('ssss', $name, $surname, $email, $address);
+
+        if ($insertStmt->execute()) {
+            echo "User data inserted successfully!";
+        } else {
+            echo "Error: " . $insertStmt->error;
+        }
+
+        $insertStmt->close();
+    } else {
+        echo "User data already exists. Skipping insertion.";
+    }
+
+    $stmt->close();
+} else {
+    echo "Incomplete session data. Cannot insert user.";
+}
+
+// Close the connection
+$conn->close();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $suffix; ?> Time Address</title>
-    <link rel="stylesheet" href="../css/styles.css">
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        let typingData = [];
-        let lastKeyUpTime = null;
-
-        // Collect typing data from input fields
-        document.querySelectorAll("input").forEach(inputField => {
-            inputField.addEventListener("keydown", function (event) {
-                const startTime = new Date().getTime();
-                event.target.dataset.startTime = startTime;
-            });
-
-            inputField.addEventListener("keyup", function (event) {
-                const endTime = new Date().getTime();
-                const startTime = parseInt(event.target.dataset.startTime || endTime);
-                const keyPressDuration = endTime - startTime;
-
-                const timeSinceLastKeyUp = lastKeyUpTime ? endTime - lastKeyUpTime : null;
-                lastKeyUpTime = endTime;
-
-                typingData.push({
-                    key: event.key,
-                    time: keyPressDuration,
-                    time_between_keys: timeSinceLastKeyUp,
-                    field: event.target.name
-                });
-            });
-        });
-
-        // Handle form submission
-        document.querySelector("form").addEventListener("submit", function (event) {
-            event.preventDefault();
-
-            fetch("algor_time_stamp.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ typing_data: typingData })
-            })
-            .then(response => response.text())
-            .then(data => {
-                console.log(data);
-                this.submit(); // Proceed with form submission
-            })
-            .catch(error => console.error("Error:", error));
-        });
-    });
-    </script>
-</head>
-<body>
-    <div class="e1_2">
-        <span class="e4_7"><?php echo $suffix; ?> Time</span>
-        <span class="e4_19">Please input: Address<br>Ex: 1/2 Rama 4 Rd., Mahapruttaram, Bang Rak, Bangkok</span>
-        <form action="tableforpush.php" method="POST">
-            <div class="e4_28">
-                <input type="text" class="ei4_28_54616_25488" name="address" placeholder="Enter your address" required>
-            </div>
-            <span class="e4_34">After finishing this section, please press Next.</span>
-            <button type="submit" class="next_button">Next</button>
-        </form>
-    </div>
-</body>
-</html>
