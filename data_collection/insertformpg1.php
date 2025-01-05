@@ -10,10 +10,13 @@ if (!isset($_SESSION['counter'])) {
 $counter = $_SESSION['counter'];
 $suffix = ($counter == 1) ? "1st" : (($counter == 2) ? "2nd" : (($counter == 3) ? "3rd" : "{$counter}th"));
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $_SESSION['first_name'] = $_POST['first_name'];
-    $_SESSION['surname'] = $_POST['surname'];
+// Check if form is submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Sanitize and store user inputs in session
+    $_SESSION['first_name'] = htmlspecialchars($_POST['first_name'], ENT_QUOTES, 'UTF-8');
+    $_SESSION['surname'] = htmlspecialchars($_POST['surname'], ENT_QUOTES, 'UTF-8');
+    
+    // Redirect to page 2
     header('Location: insertformpg2.php');
     exit();
 }
@@ -23,71 +26,66 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $suffix; ?> Time Name</title>
+    <title>Step 1 - Basic Information</title>
     <link rel="stylesheet" href="../css/styles.css">
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", () => {
         let typingData = [];
         let lastKeyUpTime = null;
 
-        // Collect typing data from input fields
-        document.querySelectorAll("input").forEach(inputField => {
-            inputField.addEventListener("keydown", function (event) {
-                const startTime = new Date().getTime();
-                event.target.dataset.startTime = startTime;
+        // Capture typing data from input fields
+        document.querySelectorAll("input").forEach(input => {
+            input.addEventListener("keydown", e => {
+                e.target.dataset.startTime = new Date().getTime();
             });
 
-            inputField.addEventListener("keyup", function (event) {
+            input.addEventListener("keyup", e => {
+                const startTime = parseInt(e.target.dataset.startTime || 0, 10);
                 const endTime = new Date().getTime();
-                const startTime = parseInt(event.target.dataset.startTime || endTime);
-                const keyPressDuration = endTime - startTime;
-
+                const keyDuration = endTime - startTime;
                 const timeSinceLastKeyUp = lastKeyUpTime ? endTime - lastKeyUpTime : null;
+
                 lastKeyUpTime = endTime;
 
                 typingData.push({
-                    key: event.key,
-                    time: keyPressDuration,
+                    field: e.target.name,
+                    key: e.key,
+                    press_duration: keyDuration,
                     time_between_keys: timeSinceLastKeyUp,
-                    field: event.target.name
                 });
             });
         });
 
-        // Handle form submission
-        document.querySelector("form").addEventListener("submit", function (event) {
-            event.preventDefault();
+        // Handle form submission and send typing data
+        document.querySelector("form").addEventListener("submit", e => {
+            e.preventDefault();
 
             fetch("algor_time_stamp.php", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ typing_data: typingData })
             })
-            .then(response => response.text())
-            .then(data => {
-                console.log(data);
-                this.submit(); // Proceed with form submission
-            })
-            .catch(error => console.error("Error:", error));
+            .then(() => e.target.submit())
+            .catch(err => console.error("Error:", err));
         });
     });
     </script>
 </head>
 <body>
-    <div class="e1_2">
-        <span class="e4_7"><?php echo $suffix; ?> Time</span>
-        <span class="e4_19">Please input: First Name and Surname<br>Ex: James Bond</span>
+    <div class="form-container">
+        <h1><?php echo $suffix; ?> Time</h1>
+        <h2>Step 1 - Basic Information</h2>
+        <p>Please enter your first name and surname to proceed to the next step.</p>
         <form action="insertformpg1.php" method="POST">
-            <div class="e4_28">
-                <input type="text" class="ei4_28_54616_25488" name="first_name" placeholder="Enter First Name" required>
+            <div class="form-group">
+                <label for="first_name">First Name:</label>
+                <input type="text" id="first_name" name="first_name" placeholder="Enter your first name" required>
             </div>
-            <div class="e4_28">
-                <input type="text" class="ei4_28_54616_25488" name="surname" placeholder="Enter Surname" required>
+            <div class="form-group">
+                <label for="surname">Surname:</label>
+                <input type="text" id="surname" name="surname" placeholder="Enter your surname" required>
             </div>
-            <span class="e4_34">After finishing this section, please press Next.</span>
-            <button type="submit" class="next_button">Next</button>
+            <button type="submit">Next</button>
         </form>
     </div>
 </body>
