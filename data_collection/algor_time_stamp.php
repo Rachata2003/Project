@@ -1,39 +1,38 @@
 <?php
 session_start();
-$conn = new mysqli('localhost', 'root', '', 'userdata');
 
-// Check for connection errors
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-// Get user ID from session
-$userId = $_SESSION['user_id'] ?? null;
-
+// Ensure the request method is POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Get and decode the input data
     $input = file_get_contents('php://input');
-    $typingData = json_decode($input, true)['typing_data'] ?? [];
+    $data = json_decode($input, true);
 
-    if ($userId && !empty($typingData)) {
-        foreach ($typingData as $entry) {
-            $key = $conn->real_escape_string($entry['key']);
-            $duration = floatval($entry['time']);
-            $field = $conn->real_escape_string($entry['field']);
-            $timeBetween = isset($entry['time_between_keys']) ? floatval($entry['time_between_keys']) : null;
+    // Check if 'typing_data' exists in the decoded data
+    if (isset($data['typing_data']) && is_array($data['typing_data'])) {
+        // Initialize session variable for typing data if not already set
+        if (!isset($_SESSION['typing_data'])) {
+            $_SESSION['typing_data'] = [];
+        }
 
-            $sql = "INSERT INTO typing_data (user_id, key_pressed, press_duration, field_name, time_between_keys) 
-                    VALUES ('$userId', '$key', '$duration', '$field', " . ($timeBetween !== null ? "'$timeBetween'" : "NULL") . ")";
-
-            if (!$conn->query($sql)) {
-                echo "Error: " . $conn->error;
+        // Append the new typing data to the session
+        foreach ($data['typing_data'] as $entry) {
+            if (isset($entry['key'], $entry['time'], $entry['field'])) {
+                // Validate data structure before adding
+                $_SESSION['typing_data'][] = [
+                    'key' => htmlspecialchars($entry['key']),
+                    'time' => floatval($entry['time']),
+                    'field' => htmlspecialchars($entry['field'])
+                ];
             }
         }
-        echo "Typing data saved successfully!";
-    } else {
-        echo "No valid typing data or user ID.";
-    }
-}
 
-// Close the connection
-$conn->close();
+        echo "Typing data saved successfully in session!";
+    } else {
+        http_response_code(400); // Bad request
+        echo "Invalid or missing 'typing_data'.";
+    }
+} else {
+    http_response_code(405); // Method not allowed
+    echo "Invalid request method.";
+}
 ?>

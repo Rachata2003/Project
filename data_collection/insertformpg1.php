@@ -33,25 +33,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         let typingData = [];
         let lastKeyUpTime = null;
 
-        // Capture typing data from input fields
-        document.querySelectorAll("input").forEach(input => {
-            input.addEventListener("keydown", e => {
-                e.target.dataset.startTime = new Date().getTime();
+        // Collect typing data from input fields
+        document.querySelectorAll("input").forEach(inputField => {
+            inputField.addEventListener("keydown", function (event) {
+                const startTime = new Date().getTime();
+                event.target.dataset.startTime = startTime;
             });
 
-            input.addEventListener("keyup", e => {
-                const startTime = parseInt(e.target.dataset.startTime || 0, 10);
+            inputField.addEventListener("keyup", function (event) {
                 const endTime = new Date().getTime();
-                const keyDuration = endTime - startTime;
-                const timeSinceLastKeyUp = lastKeyUpTime ? endTime - lastKeyUpTime : null;
+                const startTime = parseInt(event.target.dataset.startTime || endTime);
+                const keyPressDuration = endTime - startTime;
 
+                const timeSinceLastKeyUp = lastKeyUpTime ? endTime - lastKeyUpTime : null;
                 lastKeyUpTime = endTime;
 
                 typingData.push({
-                    field: e.target.name,
-                    key: e.key,
-                    press_duration: keyDuration,
+                    key: event.key,
+                    time: keyPressDuration,
                     time_between_keys: timeSinceLastKeyUp,
+                    field: event.target.name
                 });
             });
         });

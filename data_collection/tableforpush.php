@@ -22,16 +22,18 @@ $userStmt->close();
 
 // Insert typing data into "typing_data" table
 if (isset($_SESSION['typing_data']) && is_array($_SESSION['typing_data'])) {
-    $typingStmt = $conn->prepare("INSERT INTO typing_data (user_id, key_pressed, press_duration, field_name, time_between_keys) VALUES (?, ?, ?, ?, ?)");
-    foreach ($_SESSION['typing_data'] as $entry) {
-        $key_pressed = $entry['key'];
-        $press_duration = $entry['press_duration'];
-        $field_name = $entry['field'];
-        $time_between_keys = $entry['time_between_keys'] ?? null;
-        $typingStmt->bind_param("isdss", $user_id, $key_pressed, $press_duration, $field_name, $time_between_keys);
-        $typingStmt->execute();
+    $typing_stmt = $conn->prepare("INSERT INTO typing_data (user_id, key_pressed, press_duration, field_name, time_between_keys) VALUES (?, ?, ?, ?, ?)");
+
+    foreach ($_SESSION['typing_data'] as $typing_entry) {
+        $key_pressed = $typing_entry['key'];
+        $press_duration = $typing_entry['time'];
+        $field_name = $typing_entry['field'];
+        $time_between_keys = isset($typing_entry['time_between_keys']) ? $typing_entry['time_between_keys'] : null;
+
+        $typing_stmt->bind_param("isdss", $user_id, $key_pressed, $press_duration, $field_name, $time_between_keys);
+        $typing_stmt->execute();
     }
-    $typingStmt->close();
+    $typing_stmt->close();
 }
 
 // Close database connection
