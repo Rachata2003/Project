@@ -17,11 +17,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Append the new typing data to the session
         foreach ($data['typing_data'] as $entry) {
             if (isset($entry['key'], $entry['time'], $entry['field'])) {
-                // Validate data structure before adding
+                // Validate and handle 'time_between_keys'
+                $time_between_keys = isset($entry['time_between_keys']) ? floatval($entry['time_between_keys']) : null;
+
+                // Add the validated entry to the session
                 $_SESSION['typing_data'][] = [
                     'key' => htmlspecialchars($entry['key']),
                     'time' => floatval($entry['time']),
-                    'field' => htmlspecialchars($entry['field'])
+                    'field' => htmlspecialchars($entry['field']),
+                    'time_between_keys' => $time_between_keys
                 ];
             }
         }
